@@ -9,7 +9,7 @@ exports.generate_token = (user: { email: string; _id: any }): string => {
       _id: user._id.toString(),
     },
     process.env.TOKEN_GENERATION_SECRET_KEY!,
-    { expiresIn: "1h" }
+    { expiresIn: "1d" }
   );
   return token;
 };

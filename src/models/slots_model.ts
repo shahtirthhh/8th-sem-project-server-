@@ -5,12 +5,8 @@ const SLOTS_SCHEMA = new MONGOOSE.Schema({
     type: String,
     default: "Rajkot",
   },
-  slot1: {
-    type: String,
-    required: true,
-  },
-  slot2: {
-    type: String,
+  slots: {
+    type: Array,
     required: true,
   },
 });

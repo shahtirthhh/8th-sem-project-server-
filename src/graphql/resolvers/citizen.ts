@@ -7,7 +7,7 @@ const COMPLAINTS_MODEL = require("../../models/complaints_model");
 const REPORTS_MODEL = require("../../models/reports_model");
 const NOTICES_MODEL = require("../../models/notice_board_model");
 const STORIES_MODEL = require("../../models/sucess_stories_model");
-
+const SLOTS_MODEL = require("../../models/slots_model");
 const CITIZEN_MODEL = require("../../models/citizen_model");
 
 const { isEmail, isPassword } = require("../../helpers/validator");
@@ -33,7 +33,28 @@ const OTP_GENERATOR = () => {
   } while (otp.length != 4);
   return otp;
 };
+function getDatesFromTomorrowToFourDaysAfter() {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 2);
 
+  const fourDaysAfter = new Date(today);
+  fourDaysAfter.setDate(today.getDate() + 5);
+
+  const dates = [];
+
+  while (tomorrow <= fourDaysAfter) {
+    dates.push(new Date(tomorrow).toDateString());
+    tomorrow.setDate(tomorrow.getDate() + 1);
+  }
+
+  return dates;
+}
+const free_slot_checker = (meetings: any, date: string, slot: string) => {
+  return meetings.find((meeting: any) => {
+    return meeting.date === date && meeting.slot === slot;
+  });
+};
 exports.citizenResolvers = {
   sendOtp: async (args: { email: string }) => {
     if (!isEmail.test(args.email)) {
@@ -85,7 +106,6 @@ exports.citizenResolvers = {
         const token = generate_token({ email, _id: citizen._id });
         var return_obj = { ...citizen._doc, token };
         delete return_obj.password;
-        console.log(return_obj);
         return return_obj;
       } else {
         throw new Error("Incorrect Credentials !");
@@ -93,5 +113,57 @@ exports.citizenResolvers = {
     } else {
       throw new Error("User not found !");
     }
+  },
+  myMeeting: async (args: any, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const { _doc } = await CITIZEN_MODEL.findOne({ email: req.email });
+      if (!_doc.meeting) {
+        var index = 0;
+        _doc.meetings.forEach(async (meetingId: any) => {
+          const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
+          // console.log(meeting);
+          _doc.meetings[index] = meeting;
+          index++;
+        });
+        return { meeting: null, meetings: _doc.meetings };
+      } else {
+        const meeting = await MEETINGS_MODEL.findOne({ _id: _doc.meeting });
+
+        const meetingsPromises = _doc.meetings.map(async (meetingId: any) => {
+          const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
+          return meeting;
+        });
+
+        const fetched_meetings = await Promise.all(meetingsPromises);
+        return { meeting: meeting._doc, meetings: fetched_meetings };
+      }
+    }
+  },
+  getFreeSlots: async (args: any, req: AuthenticationRequest) => {
+    const dateRange = getDatesFromTomorrowToFourDaysAfter();
+    const meetings = await MEETINGS_MODEL.find();
+    const slots = await SLOTS_MODEL.findOne({ district: "Rajkot" });
+    var dates: any = [];
+
+    dateRange.map((date) => {
+      slots.slots.map((slot: string) => {
+        if (!free_slot_checker(meetings, date, slot)) {
+          dates.push({ date, slot: slot });
+        }
+      });
+    });
+    console.log(dates);
+    return dates;
+    // if (!req.isAuth) {
+    //   throw new Error("Authentication Error");
+    // } else {
+    //   var free_dates = [];
+    //   for (let index = 0; index < 4; index++) {
+
+    //   }
+
+    // }
   },
 };

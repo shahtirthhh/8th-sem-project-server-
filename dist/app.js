@@ -1,4 +1,5 @@
 "use strict";
+// new Date().toDateString() -> Should be used universally in this project. No other Formats !!
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -86,7 +87,7 @@ ROUTER.use("/graphql", (req, res, next) => {
                 error(err, "decoding the token, malformed token found.");
             }
             if (decoded) {
-                // req.email = decoded.email!;
+                req.email = decoded.email;
                 req.isAuth = true; // Set isAuth to true
                 next();
             }

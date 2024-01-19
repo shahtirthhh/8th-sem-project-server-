@@ -21,6 +21,10 @@ const CITIZEN_SCHEMA = new mongoose_1.default.Schema({
         type: Array,
         default: [],
     },
+    meetings: {
+        type: Array,
+        default: [],
+    },
     meeting: {
         type: mongoose_1.default.Types.ObjectId,
         default: null,

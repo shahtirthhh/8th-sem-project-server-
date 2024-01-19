@@ -1,7 +1,8 @@
+// new Date().toDateString() -> Should be used universally in this project. No other Formats !!
+
 import "dotenv/config";
 import EXPRESS, { NextFunction, Request, Response } from "express";
 import MONGOOSE from "mongoose";
-
 import CORS from "cors";
 import HTTP from "http";
 import { graphqlHTTP } from "express-graphql";
@@ -24,6 +25,9 @@ const IO = new Server(SERVER, {
 interface AuthenticationRequest extends Request {
   isAuth?: boolean;
   email?: string; // Assuming you want to add email to the request
+}
+interface TokenPayload extends JWT.JwtPayload {
+  email: string;
 }
 ROUTER.use(BODYPARSER.json({ limit: "50mb" }));
 ROUTER.use(BODYPARSER.urlencoded({ limit: "50mb", extended: true }));
@@ -84,7 +88,10 @@ ROUTER.use(
       } else {
         let decoded;
         try {
-          decoded = JWT.verify(token, process.env.TOKEN_GENERATION_SECRET_KEY!);
+          decoded = JWT.verify(
+            token,
+            process.env.TOKEN_GENERATION_SECRET_KEY!
+          ) as TokenPayload;
         } catch (err) {
           // console.log("Invalid Token");
           req.isAuth = false;
@@ -92,7 +99,7 @@ ROUTER.use(
           error(err, "decoding the token, malformed token found.");
         }
         if (decoded) {
-          // req.email = decoded.email!;
+          req.email = decoded.email;
           req.isAuth = true; // Set isAuth to true
           next();
         }

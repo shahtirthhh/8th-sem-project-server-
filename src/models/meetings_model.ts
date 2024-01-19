@@ -1,6 +1,14 @@
 import MONGOOSE from "mongoose";
 
 const MEETINGS_SCHEMA = new MONGOOSE.Schema({
+  happen: {
+    type: Boolean,
+    default: false,
+  },
+  reason_to_not_happen: {
+    type: String,
+    default: "",
+  },
   date_of_submit: {
     type: String,
     required: true,

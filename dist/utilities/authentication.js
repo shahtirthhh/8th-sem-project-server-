@@ -10,7 +10,7 @@ exports.generate_token = (user) => {
     const token = jsonwebtoken_1.default.sign({
         email: user.email,
         _id: user._id.toString(),
-    }, process.env.TOKEN_GENERATION_SECRET_KEY, { expiresIn: "1h" });
+    }, process.env.TOKEN_GENERATION_SECRET_KEY, { expiresIn: "1d" });
     return token;
 };
 exports.password_matcher = (plaintext, hashedValue) => {

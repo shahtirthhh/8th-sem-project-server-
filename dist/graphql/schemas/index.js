@@ -34,7 +34,9 @@ module.exports = (0, graphql_1.buildSchema)(`
         overview:String
         confirm:Boolean
         cancel:Boolean
-        reason_to_cancel:String!
+        reason_to_cancel:String
+        happen: Boolean
+        reason_to_not_happen:String
     }
     type Note {
         _id:ID
@@ -56,11 +58,18 @@ module.exports = (0, graphql_1.buildSchema)(`
         processed:Boolean
         image:[String]
     }
+    type OneSlotData{
+        name:String
+        time:String
+    }
+    type OneSlot{
+        date:String
+        slot:OneSlotData
+    }
     type Slot {
         _id:ID!
         district:String!
-        slot1:String!
-        slot2:String!
+        slots:[OneSlot]
     }
     type Success {
         _id:ID!
@@ -75,6 +84,10 @@ module.exports = (0, graphql_1.buildSchema)(`
         reports:[Report]
         meeting:ID
         token:String!
+    }
+    type citizenMeetings{
+        meeting:Meeting
+        meetings:[Meeting]
     }
     # ---------------------- 🔡 Inputs -----------------------------------------------
     input NewComplaint {
@@ -130,6 +143,8 @@ module.exports = (0, graphql_1.buildSchema)(`
         stories:[Success]
     # ----------------------CITIZEN Queries-----------------------------------------------
         loginCitizen(email:String!,password:String!):CitizenLogin!
+        myMeeting:citizenMeetings
+        getFreeSlots:[OneSlot]
     }
 
     type RootMutation {

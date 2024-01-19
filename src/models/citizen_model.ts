@@ -17,6 +17,10 @@ const CITIZEN_SCHEMA = new MONGOOSE.Schema({
     type: Array,
     default: [],
   },
+  meetings: {
+    type: Array,
+    default: [],
+  },
   meeting: {
     type: MONGOOSE.Types.ObjectId,
     default: null,

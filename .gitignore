@@ -1,4 +1,4 @@
-./node_modules
-./tsconfig.json
-./dist
-/.env
+node_modules
+tsconfig.json
+dist
+.env
