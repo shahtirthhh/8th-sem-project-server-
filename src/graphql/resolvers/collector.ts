@@ -7,6 +7,8 @@ const COMPLAINTS_MODEL = require("../../models/complaints_model");
 const REPORTS_MODEL = require("../../models/reports_model");
 const NOTICES_MODEL = require("../../models/notice_board_model");
 const STORIES_MODEL = require("../../models/sucess_stories_model");
+const SLOTS_MODEL = require("../../models/slots_model");
+const CITIZEN_MODEL = require("../../models/citizen_model");
 
 const { isEmail, isPassword } = require("../../helpers/validator");
 const {
@@ -41,7 +43,15 @@ exports.collectorResolvers = {
     if (!req.isAuth) {
       throw new Error("Authentication Error");
     } else {
-      const meetings = await MEETINGS_MODEL.find();
+      const meetings = await MEETINGS_MODEL.find().populate("from");
+      const { slots } = await SLOTS_MODEL.findOne({ district: "Rajkot" });
+
+      meetings.map(async (meeting: any) => {
+        meeting.slot = slots.find(
+          (slot: any) => slot.name === meeting.slot
+        ).time;
+      });
+      // // console.log(meetings);
       return meetings;
     }
   },
@@ -77,6 +87,15 @@ exports.collectorResolvers = {
     const stories = await STORIES_MODEL.find();
 
     return stories;
+  },
+  citizens: async (args: any, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const citizens = await CITIZEN_MODEL.find();
+      citizens.map((citizen: any) => delete citizen.password);
+      return citizens;
+    }
   },
   // -------------------------------x Mutations x------------------------------------
   saveNote: async (
@@ -129,6 +148,46 @@ exports.collectorResolvers = {
       });
       const saved_story = await new_story.save();
       return saved_story;
+    }
+  },
+  cancelMeeting: async (
+    args: { id: string; reason_to_cancel: string },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const modified = await MEETINGS_MODEL.findOneAndUpdate(
+        { _id: new MONGOOSE.Types.ObjectId(args.id) },
+        {
+          $set: { cancel: true, reason_to_cancel: args.reason_to_cancel },
+        },
+        { new: true }
+      );
+      // console.log(modified);
+      const updated = await CITIZEN_MODEL.findOneAndUpdate(
+        { _id: modified.from },
+        { $set: { meeting: null } },
+        { $push: { meetings: modified._id } },
+        { new: true }
+      );
+      // console.log(updated);
+
+      return true;
+    }
+  },
+  confirmMeeting: async (args: { id: string }, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const modified = await MEETINGS_MODEL.findOneAndUpdate(
+        { _id: new MONGOOSE.Types.ObjectId(args.id) },
+        {
+          $set: { confirm: true },
+        },
+        { new: true }
+      );
+      return true;
     }
   },
 };

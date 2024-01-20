@@ -109,48 +109,98 @@ exports.citizenResolvers = {
             throw new Error("Authentication Error");
         }
         else {
-            const { _doc } = await CITIZEN_MODEL.findOne({ email: req.email });
+            const { slots } = await SLOTS_MODEL.findOne({ district: "Rajkot" });
+            const _doc = await CITIZEN_MODEL.findOne({ email: req.email });
             if (!_doc.meeting) {
-                var index = 0;
-                _doc.meetings.forEach(async (meetingId) => {
+                const meetingsPromises = _doc.meetings.map(async (meetingId) => {
                     const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
-                    // console.log(meeting);
-                    _doc.meetings[index] = meeting;
-                    index++;
+                    meeting.slot = slots.find((slot) => slot.name === meeting.slot).time;
+                    return meeting;
                 });
+                _doc.meetings = await Promise.all(meetingsPromises);
+                // _doc.meetings.forEach(async (meetingId: any) => {
+                //   const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
+                //   // console.log(meeting);
+                //   _doc.meetings[index] = meeting;
+                //   index++;
+                // });
+                // _doc.meetings = await Promise.all(promises);
                 return { meeting: null, meetings: _doc.meetings };
             }
             else {
                 const meeting = await MEETINGS_MODEL.findOne({ _id: _doc.meeting });
+                meeting.slot = slots.find((slot) => slot.name === meeting.slot).time;
                 const meetingsPromises = _doc.meetings.map(async (meetingId) => {
                     const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
+                    meeting.slot = slots.find((slot) => slot.name === meeting.slot).time;
                     return meeting;
                 });
                 const fetched_meetings = await Promise.all(meetingsPromises);
+                // console.log(fetched_meetings);
+                // console.log(meeting);
                 return { meeting: meeting._doc, meetings: fetched_meetings };
             }
         }
     },
     getFreeSlots: async (args, req) => {
-        const dateRange = getDatesFromTomorrowToFourDaysAfter();
-        const meetings = await MEETINGS_MODEL.find();
-        const slots = await SLOTS_MODEL.findOne({ district: "Rajkot" });
-        var dates = [];
-        dateRange.map((date) => {
-            slots.slots.map((slot) => {
-                if (!free_slot_checker(meetings, date, slot)) {
-                    dates.push({ date, slot: slot });
+        if (!req.isAuth || !req.email) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const citizen = await CITIZEN_MODEL.findOne({ email: req.email });
+            if (!citizen) {
+                throw new Error("Bad request !");
+            }
+            else if (citizen.meeting) {
+                throw new Error("One meeting already requested !");
+            }
+            else {
+                const dateRange = getDatesFromTomorrowToFourDaysAfter();
+                const meetings = await MEETINGS_MODEL.find();
+                const slots = await SLOTS_MODEL.findOne({ district: "Rajkot" });
+                var dates = [];
+                dateRange.map((date) => {
+                    slots.slots.map((slot) => {
+                        if (!free_slot_checker(meetings, date, slot)) {
+                            dates.push({ date, slot: slot });
+                        }
+                    });
+                });
+                return dates;
+            }
+        }
+    },
+    requestMeeting: async (args, req) => {
+        if (!req.isAuth || !req.email) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const dates = await exports.citizenResolvers.getFreeSlots({}, req);
+            const match = dates.find((date) => date.date === args.date && date.slot.name === args.slot);
+            if (!match) {
+                throw new Error("Bad Request !");
+            }
+            else {
+                const citizen = await CITIZEN_MODEL.findOne({ email: req.email });
+                if (!citizen || citizen.meeting) {
+                    throw new Error("Bad Request !");
                 }
-            });
-        });
-        console.log(dates);
-        return dates;
-        // if (!req.isAuth) {
-        //   throw new Error("Authentication Error");
-        // } else {
-        //   var free_dates = [];
-        //   for (let index = 0; index < 4; index++) {
-        //   }
-        // }
+                const new_meeting = new MEETINGS_MODEL({
+                    date_of_submit: new Date().toDateString(),
+                    from: citizen._id,
+                    date: match.date,
+                    slot: match.slot.name,
+                    overview: args.overview,
+                });
+                const saved = await new_meeting.save();
+                await CITIZEN_MODEL.updateOne({ email: req.email }, { $set: { meeting: saved._id } });
+                if (saved) {
+                    return true;
+                }
+                else {
+                    throw new Error("⚠ Something went wrong");
+                }
+            }
+        }
     },
 };

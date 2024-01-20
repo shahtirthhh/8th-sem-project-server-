@@ -25,17 +25,17 @@ module.exports = buildSchema(`
     }
     type Meeting {
         _id:ID!
-        date_of_submit:String
-        seen:Boolean
-        from:String
-        date:String
-        slot:String
-        overview:String
-        confirm:Boolean
-        cancel:Boolean
+        date_of_submit:String!
+        seen:Boolean!
+        from:String!
+        date:String!
+        slot:String!
+        overview:String!
+        confirm:Boolean!
+        cancel:Boolean!
         reason_to_cancel:String
-        happen: Boolean
-        reason_to_not_happen:String
+        happen: Boolean!
+        reason_to_not_happen:String!
     }
     type Note {
         _id:ID
@@ -87,6 +87,14 @@ module.exports = buildSchema(`
     type citizenMeetings{
         meeting:Meeting
         meetings:[Meeting]
+    }
+    type Citizen{
+        _id:ID
+        email:String
+        complaints:[Complaint]
+        reports:[Report]
+        meetings:[Meeting]
+        meeting:ID
     }
     # ---------------------- 🔡 Inputs -----------------------------------------------
     input NewComplaint {
@@ -140,6 +148,7 @@ module.exports = buildSchema(`
         reports:[Report]
         notices:[Notice]
         stories:[Success]
+        citizens:[Citizen]
     # ----------------------CITIZEN Queries-----------------------------------------------
         loginCitizen(email:String!,password:String!):CitizenLogin!
         myMeeting:citizenMeetings
@@ -152,12 +161,15 @@ module.exports = buildSchema(`
         deleteNote(id:String):Note!
         publishNotice(content:String!):Notice
         publishStory(story:NewSuccess):Success
+        cancelMeeting(id:String,reason_to_cancel:String):Boolean
+        confirmMeeting(id:String):Boolean
 
     # ----------------------CITIZEN Mutations-----------------------------------------------
 
         sendOtp(email:String!):String!
         verifyOtp(otp:String!,enc:String!):Boolean!
         register(email:String!,password:String!):Boolean!
+        requestMeeting(date:String!,slot:String!,overview:String!):Boolean!
     }
      schema {
         query:RootQuery
