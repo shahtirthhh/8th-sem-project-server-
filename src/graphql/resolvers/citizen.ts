@@ -155,6 +155,7 @@ exports.citizenResolvers = {
         const fetched_meetings = await Promise.all(meetingsPromises);
         // console.log(fetched_meetings);
         // console.log(meeting);
+        meeting._doc.from = req.email;
         return { meeting: meeting._doc, meetings: fetched_meetings };
       }
     }
@@ -221,6 +222,44 @@ exports.citizenResolvers = {
           throw new Error("⚠ Something went wrong");
         }
       }
+    }
+  },
+  missedMyMeeting: async (
+    args: { meetingId: string },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth || !req.email) {
+      throw new Error("Authentication Error");
+    } else {
+      const citizen = await CITIZEN_MODEL.findOne({ email: req.email });
+      if (!citizen || !citizen.meeting) {
+        throw new Error("Bad Request !");
+      }
+      const updated = await MEETINGS_MODEL.findOneAndUpdate(
+        { _id: new MONGOOSE.Types.ObjectId(args.meetingId) },
+        { $set: { missed: true } },
+        { new: true }
+      );
+      // const saved = await new_meeting.save();
+      const modified = await CITIZEN_MODEL.updateOne(
+        { email: req.email },
+        { $set: { meeting: null }, $push: { meetings: updated._id } },
+        { new: true }
+      );
+      return true;
+    }
+  },
+  getCollectorSocket: async (args: any, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const collector = await COLLECTOR_MODEL.findOne({
+        email: "dhabu2212@gmail.com",
+      });
+      if (collector.socket) {
+        return collector.socket;
+      }
+      return false;
     }
   },
 };

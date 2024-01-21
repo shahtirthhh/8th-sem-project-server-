@@ -1,9 +1,10 @@
 "use strict";
-// new Date().toDateString() -> Should be used universally in this project. No other Formats !!
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// new Date().toDateString() -> Should be used universally in this project. No other Formats !!
+// Hard coded value of the collector email is at getCollectorSocket Query in citizen resolvers, update it when to change collector mail in DB
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -31,16 +32,10 @@ IO.on("connect", (socket) => {
     console.log(`\n💖 New user connected - ${new Date().toLocaleTimeString()}`);
     socket.emit("get_my_socket_id", socket.id);
     socket.on("citizen-ready-to-join", (data) => {
-        socket.to(data.clerk).emit("citizen-ready-to-join", {
+        socket.to(data.collector).emit("citizen-ready-to-join", {
             citizen: data.citizen,
-            slot: data.slot,
+            citizen_email: data.citizen_email,
         });
-    });
-    socket.on("other-verification-in-process", (citizen) => {
-        socket.to(citizen).emit("other-verification-in-progress");
-    });
-    socket.on("disconnect", () => {
-        socket.broadcast.emit("callEnded");
     });
     socket.on("callUser", (data) => {
         socket
@@ -49,6 +44,12 @@ IO.on("connect", (socket) => {
     });
     socket.on("answerCall", (data) => {
         socket.to(data.to).emit("callAccepted", data.signal);
+    });
+    // socket.on("other-verification-in-process", (citizen: any) => {
+    //   socket.to(citizen).emit("other-verification-in-progress");
+    // });
+    socket.on("disconnect", () => {
+        socket.broadcast.emit("callEnded");
     });
     socket.on("clerk-disconnected", async (data) => {
         // const updated = await CLERK_SCHEMA.updateOne(

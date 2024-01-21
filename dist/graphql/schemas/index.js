@@ -37,6 +37,7 @@ module.exports = (0, graphql_1.buildSchema)(`
         reason_to_cancel:String
         happen: Boolean!
         reason_to_not_happen:String!
+        missed:Boolean
     }
     type Note {
         _id:ID
@@ -98,6 +99,44 @@ module.exports = (0, graphql_1.buildSchema)(`
         meeting:ID
     }
     # ---------------------- 🔡 Inputs -----------------------------------------------
+    input InputMeeting {
+        _id:ID
+        date_of_submit:String
+        seen:Boolean
+        from:String
+        date:String
+        slot:String
+        overview:String
+        confirm:Boolean
+        cancel:Boolean
+        reason_to_cancel:String
+        happen: Boolean
+        reason_to_not_happen:String
+        missed:Boolean
+    }
+    input InputReport {
+        _id:ID
+        date_of_submit:String
+        seen:Boolean
+        from:String
+        content:String
+        location:String
+        under_review:Boolean
+        processed:Boolean
+        image:[String]
+    }
+    input InputComplaint {
+        _id:ID
+        date_of_submit:String
+        seen:Boolean
+        from:String
+        department:String
+        content:String
+        location:String
+        under_review:Boolean
+        processed:Boolean
+        image:[String]
+    }
     input NewComplaint {
         from:String!
         department:String!
@@ -135,6 +174,11 @@ module.exports = (0, graphql_1.buildSchema)(`
         content:String!
         image:[String]
     }
+    input InputNotifications {
+        meetings:[InputMeeting]!
+        reports:[InputReport]!
+        complaints:[InputComplaint]!
+    }
 
 
     # ----------------------USER Types-----------------------------------------------
@@ -154,6 +198,7 @@ module.exports = (0, graphql_1.buildSchema)(`
         loginCitizen(email:String!,password:String!):CitizenLogin!
         myMeeting:citizenMeetings
         getFreeSlots:[OneSlot]
+        getCollectorSocket:String
     }
 
     type RootMutation {
@@ -164,6 +209,7 @@ module.exports = (0, graphql_1.buildSchema)(`
         publishStory(story:NewSuccess):Success
         cancelMeeting(id:String,reason_to_cancel:String):Boolean
         confirmMeeting(id:String):Boolean
+        changeStatus(status:Boolean!,socket:String!):Boolean!
 
     # ----------------------CITIZEN Mutations-----------------------------------------------
 
@@ -171,6 +217,9 @@ module.exports = (0, graphql_1.buildSchema)(`
         verifyOtp(otp:String!,enc:String!):Boolean!
         register(email:String!,password:String!):Boolean!
         requestMeeting(date:String!,slot:String!,overview:String!):Boolean!
+        setNotificationsAsSeen(meetings:[InputMeeting],complaints:[InputComplaint],reports:[InputReport]):Boolean!
+        missedMyMeeting(meetingId:String!):Boolean!
+
     }
      schema {
         query:RootQuery

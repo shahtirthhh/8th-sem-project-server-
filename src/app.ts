@@ -1,5 +1,5 @@
 // new Date().toDateString() -> Should be used universally in this project. No other Formats !!
-
+// Hard coded value of the collector email is at getCollectorSocket Query in citizen resolvers, update it when to change collector mail in DB
 import "dotenv/config";
 import EXPRESS, { NextFunction, Request, Response } from "express";
 import MONGOOSE from "mongoose";
@@ -36,29 +36,33 @@ IO.on("connect", (socket: any) => {
   console.log(`\n💖 New user connected - ${new Date().toLocaleTimeString()}`);
   socket.emit("get_my_socket_id", socket.id);
 
-  socket.on("citizen-ready-to-join", (data: any) => {
-    socket.to(data.clerk).emit("citizen-ready-to-join", {
-      citizen: data.citizen,
-      slot: data.slot,
-    });
+  socket.on(
+    "citizen-ready-to-join",
+    (data: { citizen: string; citizen_email: string; collector: string }) => {
+      socket.to(data.collector).emit("citizen-ready-to-join", {
+        citizen: data.citizen,
+        citizen_email: data.citizen_email,
+      });
+    }
+  );
+  socket.on(
+    "callUser",
+    (data: { userToCall: string; signalData: any; from: string }) => {
+      socket
+        .to(data.userToCall)
+        .emit("callUser", { signal: data.signalData, from: data.from });
+    }
+  );
+  socket.on("answerCall", (data: any) => {
+    socket.to(data.to).emit("callAccepted", data.signal);
   });
-
-  socket.on("other-verification-in-process", (citizen: any) => {
-    socket.to(citizen).emit("other-verification-in-progress");
-  });
+  // socket.on("other-verification-in-process", (citizen: any) => {
+  //   socket.to(citizen).emit("other-verification-in-progress");
+  // });
   socket.on("disconnect", () => {
     socket.broadcast.emit("callEnded");
   });
 
-  socket.on("callUser", (data: any) => {
-    socket
-      .to(data.userToCall)
-      .emit("callUser", { signal: data.signalData, from: data.from });
-  });
-
-  socket.on("answerCall", (data: any) => {
-    socket.to(data.to).emit("callAccepted", data.signal);
-  });
   socket.on("clerk-disconnected", async (data: any) => {
     // const updated = await CLERK_SCHEMA.updateOne(
     //   { callId: socket.id },

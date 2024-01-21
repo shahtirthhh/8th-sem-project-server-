@@ -13,5 +13,9 @@ const COLLECTOR_SCHEMA = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
+    socket: {
+        type: String,
+        default: null,
+    },
 });
 module.exports = mongoose_1.default.model("Collector", COLLECTOR_SCHEMA);

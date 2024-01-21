@@ -149,7 +149,7 @@ exports.collectorResolvers = {
                 $set: { cancel: true, reason_to_cancel: args.reason_to_cancel },
             }, { new: true });
             // console.log(modified);
-            const updated = await CITIZEN_MODEL.findOneAndUpdate({ _id: modified.from }, { $set: { meeting: null } }, { $push: { meetings: modified._id } }, { new: true });
+            const updated = await CITIZEN_MODEL.findOneAndUpdate({ _id: modified.from }, { $set: { meeting: null }, $push: { meetings: modified._id } }, { new: true });
             // console.log(updated);
             return true;
         }
@@ -163,6 +163,54 @@ exports.collectorResolvers = {
                 $set: { confirm: true },
             }, { new: true });
             return true;
+        }
+    },
+    setNotificationsAsSeen: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            if (args.meetings.length >= 1) {
+                const updatePromises = args.meetings.map(async (meeting) => {
+                    const updated = await MEETINGS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(meeting._id) }, { $set: { seen: true } }, { new: true });
+                    return updated;
+                });
+                Promise.all(updatePromises);
+            }
+            if (args.complaints.length >= 1) {
+                const updatePromises = args.complaints.map(async (complaint) => {
+                    const updated = await COMPLAINTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(complaint._id) }, { $set: { seen: true } }, { new: true });
+                    return updated;
+                });
+                Promise.all(updatePromises);
+            }
+            if (args.reports.length >= 1) {
+                const updatePromises = args.reports.map(async (report) => {
+                    const updated = await REPORTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(report._id) }, { $set: { seen: true } }, { new: true });
+                    return updated;
+                });
+                Promise.all(updatePromises);
+            }
+            return true;
+        }
+    },
+    changeStatus: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const collector = await COLLECTOR_MODEL.findOne({ email: req.email });
+            if (!collector) {
+                throw new Error("Bad request !");
+            }
+            if (args.status && collector) {
+                await COLLECTOR_MODEL.findOneAndUpdate({ email: req.email }, { $set: { socket: args.socket } });
+                return true;
+            }
+            else {
+                await COLLECTOR_MODEL.findOneAndUpdate({ email: req.email }, { $set: { socket: null } });
+                return false;
+            }
         }
     },
 };

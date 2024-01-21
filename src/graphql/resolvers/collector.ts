@@ -167,8 +167,7 @@ exports.collectorResolvers = {
       // console.log(modified);
       const updated = await CITIZEN_MODEL.findOneAndUpdate(
         { _id: modified.from },
-        { $set: { meeting: null } },
-        { $push: { meetings: modified._id } },
+        { $set: { meeting: null }, $push: { meetings: modified._id } },
         { new: true }
       );
       // console.log(updated);
@@ -188,6 +187,75 @@ exports.collectorResolvers = {
         { new: true }
       );
       return true;
+    }
+  },
+  setNotificationsAsSeen: async (
+    args: { meetings: Array<any>; complaints: Array<any>; reports: Array<any> },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      if (args.meetings.length >= 1) {
+        const updatePromises = args.meetings.map(async (meeting) => {
+          const updated = await MEETINGS_MODEL.findOneAndUpdate(
+            { _id: new MONGOOSE.Types.ObjectId(meeting._id) },
+            { $set: { seen: true } },
+            { new: true }
+          );
+          return updated;
+        });
+        Promise.all(updatePromises);
+      }
+      if (args.complaints.length >= 1) {
+        const updatePromises = args.complaints.map(async (complaint) => {
+          const updated = await COMPLAINTS_MODEL.findOneAndUpdate(
+            { _id: new MONGOOSE.Types.ObjectId(complaint._id) },
+            { $set: { seen: true } },
+            { new: true }
+          );
+          return updated;
+        });
+        Promise.all(updatePromises);
+      }
+      if (args.reports.length >= 1) {
+        const updatePromises = args.reports.map(async (report) => {
+          const updated = await REPORTS_MODEL.findOneAndUpdate(
+            { _id: new MONGOOSE.Types.ObjectId(report._id) },
+            { $set: { seen: true } },
+            { new: true }
+          );
+          return updated;
+        });
+        Promise.all(updatePromises);
+      }
+      return true;
+    }
+  },
+  changeStatus: async (
+    args: { status: Boolean; socket: string },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const collector = await COLLECTOR_MODEL.findOne({ email: req.email });
+      if (!collector) {
+        throw new Error("Bad request !");
+      }
+      if (args.status && collector) {
+        await COLLECTOR_MODEL.findOneAndUpdate(
+          { email: req.email },
+          { $set: { socket: args.socket } }
+        );
+        return true;
+      } else {
+        await COLLECTOR_MODEL.findOneAndUpdate(
+          { email: req.email },
+          { $set: { socket: null } }
+        );
+        return false;
+      }
     }
   },
 };

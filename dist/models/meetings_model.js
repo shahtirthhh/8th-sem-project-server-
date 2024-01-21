@@ -45,6 +45,10 @@ const MEETINGS_SCHEMA = new mongoose_1.default.Schema({
         type: Boolean,
         default: false,
     },
+    missed: {
+        type: Boolean,
+        default: false,
+    },
     reason_to_cancel: {
         type: String,
         default: null,
