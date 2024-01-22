@@ -10,11 +10,11 @@ const COMPLAINT_SCHEMA = new MONGOOSE.Schema({
     default: false,
   },
   from: {
-    type: MONGOOSE.Types.ObjectId,
+    type: String,
     required: true,
   },
   department: {
-    type: MONGOOSE.Types.ObjectId,
+    type: String,
     required: true,
   },
   content: {

@@ -213,4 +213,74 @@ exports.collectorResolvers = {
             }
         }
     },
+    setMeetingAsHappened: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const updated = await MEETINGS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(args.meetingId) }, { $set: { happen: true } }, { new: true });
+            if (!updated) {
+                throw new Error("Bad request !");
+            }
+            else {
+                return true;
+            }
+        }
+    },
+    setAsUnderReview: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const updated = await COMPLAINTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(args.complaintId) }, { $set: { under_review: true } }, { new: true });
+            if (!updated) {
+                throw new Error("Bad request !");
+            }
+            else {
+                return true;
+            }
+        }
+    },
+    setAsProcessed: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const updated = await COMPLAINTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(args.complaintId) }, { $set: { under_review: false, processed: true } }, { new: true });
+            if (!updated) {
+                throw new Error("Bad request !");
+            }
+            else {
+                return true;
+            }
+        }
+    },
+    setAsUnderReviewReport: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const updated = await REPORTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(args.reportId) }, { $set: { under_review: true } }, { new: true });
+            if (!updated) {
+                throw new Error("Bad request !");
+            }
+            else {
+                return true;
+            }
+        }
+    },
+    setAsProcessedReport: async (args, req) => {
+        if (!req.isAuth) {
+            throw new Error("Authentication Error");
+        }
+        else {
+            const updated = await REPORTS_MODEL.findOneAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(args.reportId) }, { $set: { under_review: false, processed: true } }, { new: true });
+            if (!updated) {
+                throw new Error("Bad request !");
+            }
+            else {
+                return true;
+            }
+        }
+    },
 };

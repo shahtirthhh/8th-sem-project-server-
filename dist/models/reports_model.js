@@ -14,7 +14,7 @@ const REPORTS_SCHEMA = new mongoose_1.default.Schema({
         default: false,
     },
     from: {
-        type: mongoose_1.default.Types.ObjectId,
+        type: String,
         required: true,
     },
     content: {

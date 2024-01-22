@@ -9,12 +9,12 @@ module.exports = buildSchema(`
     }
     type Complaint {
         _id:ID!
-        date_of_submit:String!
+        date_of_submit:String
         seen:Boolean
-        from:String!
-        department:String!
-        content:String!
-        location:String!
+        from:String
+        department:String
+        content:String
+        location:String
         under_review:Boolean
         processed:Boolean
         image:[String]
@@ -48,12 +48,12 @@ module.exports = buildSchema(`
         content:String!
     }
     type Report {
-        _id:ID!
-        date_of_submit:String!
+        _id:ID
+        date_of_submit:String
         seen:Boolean
-        from:String!
-        content:String!
-        location:String!
+        from:String
+        content:String
+        location:String
         under_review:Boolean
         processed:Boolean
         image:[String]
@@ -198,6 +198,8 @@ module.exports = buildSchema(`
         myMeeting:citizenMeetings
         getFreeSlots:[OneSlot]
         getCollectorSocket:String
+        myComplaints:[Complaint]!
+        myReports:[Report]!
     }
 
     type RootMutation {
@@ -209,6 +211,11 @@ module.exports = buildSchema(`
         cancelMeeting(id:String,reason_to_cancel:String):Boolean
         confirmMeeting(id:String):Boolean
         changeStatus(status:Boolean!,socket:String!):Boolean!
+        setMeetingAsHappened(meetingId:String!):Boolean!
+        setAsUnderReview(complaintId:String!):Boolean!
+        setAsProcessed(complaintId:String!):Boolean!
+        setAsUnderReviewReport(reportId:String!):Boolean!
+        setAsProcessedReport(reportId:String!):Boolean!
 
     # ----------------------CITIZEN Mutations-----------------------------------------------
 
@@ -218,6 +225,8 @@ module.exports = buildSchema(`
         requestMeeting(date:String!,slot:String!,overview:String!):Boolean!
         setNotificationsAsSeen(meetings:[InputMeeting],complaints:[InputComplaint],reports:[InputReport]):Boolean!
         missedMyMeeting(meetingId:String!):Boolean!
+        newComplaint(content:String!,location:String!,department:String!,image:[String]):String!
+        newReport(content:String!,location:String!,image:[String]):String!
 
     }
      schema {

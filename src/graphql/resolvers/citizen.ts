@@ -262,4 +262,76 @@ exports.citizenResolvers = {
       return false;
     }
   },
+  newComplaint: async (
+    args: {
+      content: string;
+      location: string;
+      department: string;
+      image: Array<string>;
+    },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const complaint = new COMPLAINTS_MODEL({
+        date_of_submit: new Date().toDateString(),
+        from: req.email,
+        department: args.department,
+        content: args.content,
+        location: args.location,
+        image: args.image,
+      });
+      const saved = await complaint.save();
+      await CITIZEN_MODEL.findOneAndUpdate(
+        { email: req.email },
+        { $push: { complaints: saved._id } }
+      );
+      return saved.toString();
+    }
+  },
+  myComplaints: async (args: any, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const complaints = await COMPLAINTS_MODEL.find({ from: req.email });
+      return complaints;
+    }
+  },
+  newReport: async (
+    args: {
+      content: string;
+      location: string;
+
+      image: Array<string>;
+    },
+    req: AuthenticationRequest
+  ) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const complaint = new REPORTS_MODEL({
+        date_of_submit: new Date().toDateString(),
+        from: req.email,
+
+        content: args.content,
+        location: args.location,
+        image: args.image,
+      });
+      const saved = await complaint.save();
+      await CITIZEN_MODEL.findOneAndUpdate(
+        { email: req.email },
+        { $push: { reports: saved._id } }
+      );
+      return saved.toString();
+    }
+  },
+  myReports: async (args: any, req: AuthenticationRequest) => {
+    if (!req.isAuth) {
+      throw new Error("Authentication Error");
+    } else {
+      const complaints = await REPORTS_MODEL.find({ from: req.email });
+      return complaints;
+    }
+  },
 };

@@ -56,9 +56,6 @@ IO.on("connect", (socket: any) => {
   socket.on("answerCall", (data: any) => {
     socket.to(data.to).emit("callAccepted", data.signal);
   });
-  // socket.on("other-verification-in-process", (citizen: any) => {
-  //   socket.to(citizen).emit("other-verification-in-progress");
-  // });
   socket.on("disconnect", () => {
     socket.broadcast.emit("callEnded");
   });
