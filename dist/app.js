@@ -27,6 +27,12 @@ const IO = new Server(SERVER, {
 });
 ROUTER.use(BODYPARSER.json({ limit: "50mb" }));
 ROUTER.use(BODYPARSER.urlencoded({ limit: "50mb", extended: true }));
+ROUTER.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    next();
+});
 ROUTER.use((0, cors_1.default)());
 IO.on("connect", (socket) => {
     console.log(`\n💖 New user connected - ${new Date().toLocaleTimeString()}`);

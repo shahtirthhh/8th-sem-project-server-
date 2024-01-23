@@ -16,6 +16,7 @@ const RESOLVERS = require("./graphql/resolvers/index");
 
 const ROUTER = EXPRESS();
 const SERVER = HTTP.createServer(ROUTER);
+
 const IO = new Server(SERVER, {
   cors: {
     origin: "*",
@@ -31,6 +32,12 @@ interface TokenPayload extends JWT.JwtPayload {
 }
 ROUTER.use(BODYPARSER.json({ limit: "50mb" }));
 ROUTER.use(BODYPARSER.urlencoded({ limit: "50mb", extended: true }));
+ROUTER.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  next();
+});
 ROUTER.use(CORS());
 IO.on("connect", (socket: any) => {
   console.log(`\n💖 New user connected - ${new Date().toLocaleTimeString()}`);

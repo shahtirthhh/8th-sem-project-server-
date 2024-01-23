@@ -123,6 +123,7 @@ exports.citizenResolvers = {
       if (!_doc.meeting) {
         const meetingsPromises = _doc.meetings.map(async (meetingId: any) => {
           const meeting = await MEETINGS_MODEL.findOne({ _id: meetingId });
+
           meeting.slot = slots.find(
             (slot: any) => slot.name === meeting.slot
           ).time;
